@@ -1,0 +1,9 @@
+{
+    "include": ["."],
+    "exclude": ["**/migrations", "**/tests", "**/typings", "**/tasks*"],
+    "pythonVersion": "3.9",
+    "typeCheckingMode": "strict",
+    "reportMissingTypeStubs": true,
+    "reportMissingImports": true,
+    "reportMissingModuleSource": true
+}
