@@ -15,3 +15,6 @@ class SearchResult(Generic[T]):
     """Generic Search Class"""
     total: int
     hits: List[T]
+    page: int
+    page_size: int
+    total_pages: int

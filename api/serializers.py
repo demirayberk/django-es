@@ -1,6 +1,7 @@
-from typing import Any, Text, TypedDict, Dict
+from typing import Any, Dict, Text, TypedDict
 
 from django.http import QueryDict
+from django_celery_beat.models import MaxValueValidator
 from rest_framework import serializers
 
 #TODO: modularize serializers
@@ -20,10 +21,18 @@ class BasicUserSchema(serializers.Serializer[QueryDict]):
     password = serializers.CharField(required=True)
 
 
-class SearchSchema(serializers.Serializer[QueryDict]):
-    """Serializer for search endpoint"""
+class PaginationSchema(serializers.Serializer[Dict[Text, Text]]):
 
-    query = serializers.CharField(required=True)
+    page = serializers.IntegerField(default=1)
+    page_size = serializers.IntegerField(
+        required=False,
+        default=10,
+        validators=[MaxValueValidator(999)]
+    )
+
+class SearchSchema(PaginationSchema):
+    """Serializer for search endpoint"""
+    query = serializers.CharField(default="*")
 
 class ErrorSchema(serializers.Serializer[Dict[Text, Text]]):
     """Errorschema"""
@@ -51,6 +60,7 @@ class HostIPSchema(serializers.Serializer[Dict[Text, Text]]):
         help_text="List of IP addresses"
     )
 
-class ESSearchResponseSchema(serializers.Serializer[Dict[Text, Any]]):
+class ESSearchResponseSchema(PaginationSchema):
     total = serializers.IntegerField()
+    total_pages = serializers.IntegerField()
     hits = HostIPSchema(many=True)

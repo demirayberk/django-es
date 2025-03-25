@@ -1,4 +1,3 @@
-
 from dataclasses import asdict
 
 from drf_yasg.utils import swagger_auto_schema  # pyright: ignore
@@ -28,16 +27,20 @@ class SearchView(APIView, ValidateMixin):
     )
     def post(self, request: Request) -> Response:
 
-        search = self._validate_serializer(
-            SearchSchema, request.data
-        )
+        search = self._validate_serializer(SearchSchema, request.data)
         query = search.validated_data["query"]
-        es_search = HostIpSearch().search_wildcard(field="Hostname", value=query)
+        page = search.validated_data["page"]
+        page_size = search.validated_data["page_size"]
+
+        es_search = HostIpSearch().search_wildcard(
+            field="Hostname", value=query, page=page, page_size=page_size
+        )
         data = {
             "total": es_search.total,
-            "hits": [asdict(hit) for hit in es_search.hits]
+            "hits": [asdict(hit) for hit in es_search.hits],
+            "page": es_search.page,
+            "page_size": es_search.page_size,
+            "total_pages": es_search.total_pages,
         }
         sch = self._validate_serializer(ESSearchResponseSchema, data)
-        return Response(
-            sch.validated_data
-        )
+        return Response(sch.validated_data)

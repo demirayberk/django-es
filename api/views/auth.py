@@ -20,7 +20,7 @@ class LoginView(APIView, ValidateMixin, AuthMixin):
     """Endpoint for login"""
 
     @swagger_auto_schema(
-        request_body=BasicUserSchema,  # Specify the request body schema
+        request_body=BasicUserSchema,
         responses={
             200: TokenCreatedSchema,
             401: ErrorSchema,

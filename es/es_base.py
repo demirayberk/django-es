@@ -1,4 +1,5 @@
 import abc
+import math
 from dataclasses import asdict
 from typing import Any, Dict, Generic, Type, TypeVar
 
@@ -45,19 +46,28 @@ class ElasticsearchBase(Generic[T], abc.ABC):
         return self.__es_client.es.index(
             index=self.__es_client.index, id=id, document=document, refresh=refresh
         )
+    def search_wildcard(self, field: str, value: str, page: int = 1, page_size: int = 10) -> SearchResult[T]:
 
-    def search_wildcard(self, field: str, value: str) -> SearchResult[T]:
-        # Build the Elasticsearch query
-        es_query = {"query": {"wildcard": {f"{field}.keyword": {"value": f"{value}"}}}}
+        from_ = (page - 1) * page_size
+        es_query = {
+            "query": {"wildcard": {f"{field}.keyword": {"value": f"{value}"}}},
+            "from": from_,
+            "size": page_size,
+        }
 
         response = self.__es_client.es.search(
             index=self.__es_client.index, body=es_query
         )
+        total = response["hits"]["total"]["value"]
+        total_pages = math.ceil(total / page_size)
 
         return SearchResult(
-            total=response["hits"]["total"]["value"],
+            total= total,
             hits=[
                 self._dataclass_type(**hit["_source"])
                 for hit in response["hits"]["hits"]
             ],
+            page = page,
+            page_size = page_size,
+            total_pages = total_pages
         )
